@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Transcription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Real-time Transcription</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div id="progress-text"></div>
+        <div id="output"></div>
+    </div>
+    <script>
+        const socket = io();
+        const output = document.getElementById('output');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        socket.on('connect', () => {
+            socket.emit('start_transcription', { filename: '{{ filename }}' });
+        });
+
+        socket.on('transcription_update', (data) => {
+            const chunk = document.createElement('span');
+            chunk.className = 'transcription-chunk';
+            chunk.textContent = data.text + ' ';
+            output.appendChild(chunk);
+            
+            updateProgressBar(data.progress);
+        });
+
+        socket.on('transcription_complete', () => {
+            const completionMessage = document.createElement('p');
+            completionMessage.className = 'transcription-chunk';
+            completionMessage.innerHTML = '<strong>Transcription complete!</strong>';
+            output.appendChild(completionMessage);
+            
+            updateProgressBar(100);
+        });
+
+        function updateProgressBar(progress) {
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}% transcribed`;
+        }
+    </script>
+</body>
+</html>
