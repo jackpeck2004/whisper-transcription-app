@@ -1,6 +1,6 @@
 # OpenAI Whisper Transcription UI
 
-This is a Speech-to-Text transcription web app, built mostly by AI, which uses OpenAI's whisper at its code.
+This is a Speech-to-Text transcription web app, built mostly by AI, which uses OpenAI's whisper at its core.
 
 ## Running
 
