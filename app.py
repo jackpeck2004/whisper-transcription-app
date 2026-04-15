@@ -3,6 +3,7 @@ from datetime import datetime
 import tempfile
 from flask import Flask, request, render_template
 from flask_socketio import SocketIO, emit
+import torch
 import whisper
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
@@ -19,10 +20,21 @@ ALLOWED_EXTENSIONS = {'wav', 'mp3', 'ogg'}
 
 m = os.environ.get('MODEL', 'medium')
 
-# Load Whisper model
-model = whisper.load_model(m)
 
-print(f'using whisper-{m}')
+def whisper_device() -> str:
+    override = os.environ.get('WHISPER_DEVICE', '').strip().lower()
+    if override in ('cpu', 'cuda', 'mps'):
+        return override
+    if torch.cuda.is_available():
+        return 'cuda'
+    if getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available():
+        return 'mps'
+    return 'cpu'
+
+
+_device = whisper_device()
+model = whisper.load_model(m, device=_device)
+print(f'using whisper-{m} on {_device}')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
